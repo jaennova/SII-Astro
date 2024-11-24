@@ -1,0 +1,50 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StudentCard from '../components/StudentCard.astro';
+import { getStudents } from '../lib/db';
+
+// Get students directly from the database since we're server-side
+const students = await getStudents();
+---
+
+<Layout title="Sistema de Información Integral Universitario">
+  <main class="min-h-screen bg-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="text-center mb-12">
+        <h1 class="text-4xl font-bold text-gray-900 mb-4">
+          Sistema de Información Integral
+        </h1>
+        <p class="text-lg text-gray-600">
+          Panel de Control Estudiantil
+        </p>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div class="p-4">
+            <p class="text-2xl font-bold text-primary-600">{students.length}</p>
+            <p class="text-gray-600">Estudiantes</p>
+          </div>
+          <div class="p-4">
+            <p class="text-2xl font-bold text-primary-600">
+              {(students.reduce((acc, curr) => acc + Number(curr.promedio), 0) / students.length || 0).toFixed(2)}
+            </p>
+            <p class="text-gray-600">Promedio General</p>
+          </div>
+          <div class="p-4">
+            <p class="text-2xl font-bold text-primary-600">
+              {new Set(students.map(s => s.carrera)).size}
+            </p>
+            <p class="text-gray-600">Carreras</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {students.map((student) => (
+          <StudentCard student={student} />
+        ))}
+      </div>
+    </div>
+  </main>
+</Layout>
