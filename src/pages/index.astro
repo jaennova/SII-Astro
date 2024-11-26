@@ -1,50 +1,117 @@
 ---
+// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
-import StudentCard from '../components/StudentCard.astro';
-import { getStudents } from '../lib/db';
+import ProductCard from '../components/ProductCard.astro';
+import { getProducts } from '../lib/db';
 
-// Get students directly from the database since we're server-side
-const students = await getStudents();
+const products = await getProducts();
 ---
 
-<Layout title="Sistema de Información Integral Universitario">
+<Layout title="Tienda Online">
   <main class="min-h-screen bg-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div class="text-center mb-12">
         <h1 class="text-4xl font-bold text-gray-900 mb-4">
-          Sistema de Información Integral
+          Tienda Online
         </h1>
-        <p class="text-lg text-gray-600">
-          Panel de Control Estudiantil
-        </p>
       </div>
 
-      <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-        <div class="grid grid-cols-3 gap-4 text-center">
-          <div class="p-4">
-            <p class="text-2xl font-bold text-primary-600">{students.length}</p>
-            <p class="text-gray-600">Estudiantes</p>
-          </div>
-          <div class="p-4">
-            <p class="text-2xl font-bold text-primary-600">
-              {(students.reduce((acc, curr) => acc + Number(curr.promedio), 0) / students.length || 0).toFixed(2)}
-            </p>
-            <p class="text-gray-600">Promedio General</p>
-          </div>
-          <div class="p-4">
-            <p class="text-2xl font-bold text-primary-600">
-              {new Set(students.map(s => s.carrera)).size}
-            </p>
-            <p class="text-gray-600">Carreras</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div id="cart-summary" class="lg:col-span-3 bg-white rounded-lg shadow-md p-6">
+          <h2 class="text-xl font-semibold mb-4">Resumen de Compra</h2>
+          <div id="cart-items"></div>
+          <div class="mt-4 pt-4 border-t">
+            <div class="flex justify-between">
+              <span>Subtotal:</span>
+              <span id="subtotal">$0.00</span>
+            </div>
+            <div class="flex justify-between">
+              <span>IVA (16%):</span>
+              <span id="iva">$0.00</span>
+            </div>
+            <div class="flex justify-between font-bold mt-2">
+              <span>Total:</span>
+              <span id="total">$0.00</span>
+            </div>
+            <button
+              id="checkout-button"
+              class="w-full mt-4 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+            >
+              Proceder al Pago
+            </button>
           </div>
         </div>
-      </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {students.map((student) => (
-          <StudentCard student={student} />
+        {products.map((product) => (
+          <ProductCard {...product} />
         ))}
       </div>
     </div>
   </main>
 </Layout>
+
+<script define:vars={{ products }}>
+  // Inicializar el carrito como un objeto vacío
+  let cart = {};
+
+  function updateCartUI() {
+    const cartItems = document.getElementById('cart-items');
+    const subtotalElement = document.getElementById('subtotal');
+    const ivaElement = document.getElementById('iva');
+    const totalElement = document.getElementById('total');
+
+    if (!cartItems || !subtotalElement || !ivaElement || !totalElement) return;
+
+    let subtotal = 0;
+    cartItems.innerHTML = '';
+
+    Object.entries(cart).forEach(([id, cantidad]) => {
+      const product = products.find(p => p.id === Number(id));
+      if (product) {
+        subtotal += product.precio * Number(cantidad);
+        cartItems.innerHTML += `
+          <div class="flex justify-between items-center mb-2">
+            <span>${product.nombre} x ${cantidad}</span>
+            <span>$${(product.precio * Number(cantidad)).toFixed(2)}</span>
+          </div>
+        `;
+      }
+    });
+
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
+
+    subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+    ivaElement.textContent = `$${iva.toFixed(2)}`;
+    totalElement.textContent = `$${total.toFixed(2)}`;
+  }
+
+  // Escuchar el evento addToCart
+  window.addEventListener('addToCart', function(event) {
+    // Asegurarse de que event.detail existe y tiene las propiedades necesarias
+    if (event && 'detail' in event) {
+      const detail = event.detail;
+      if (detail && 'id' in detail && 'cantidad' in detail) {
+        const id = Number(detail.id);
+        const cantidad = Number(detail.cantidad);
+        
+        if (!isNaN(id) && !isNaN(cantidad)) {
+          cart[id] = (cart[id] || 0) + cantidad;
+          updateCartUI();
+        }
+      }
+    }
+  });
+
+  // Configurar el botón de checkout
+  const checkoutButton = document.getElementById('checkout-button');
+  if (checkoutButton) {
+    checkoutButton.addEventListener('click', function() {
+      if (Object.keys(cart).length === 0) {
+        alert('El carrito está vacío');
+        return;
+      }
+      window.location.href = `/factura?cart=${encodeURIComponent(JSON.stringify(cart))}`;
+    });
+  }
+</script>

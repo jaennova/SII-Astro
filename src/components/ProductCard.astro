@@ -1,0 +1,58 @@
+---
+// components/ProductCard.astro
+interface Props {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  imagen_url: string;
+}
+
+const { id, nombre, descripcion, precio, imagen_url } = Astro.props;
+---
+
+<div class="bg-white rounded-lg shadow-md p-4">
+  <img src={imagen_url} alt={nombre} class="w-full h-48 object-cover mb-4 rounded" />
+  <h3 class="text-lg font-semibold">{nombre}</h3>
+  <p class="text-gray-600 text-sm mb-2">{descripcion}</p>
+  <p class="text-lg font-bold text-primary-600">${precio.toFixed(2)}</p>
+  
+  <div class="flex items-center gap-2 mt-4">
+    <input
+      type="number"
+      min="1"
+      value="1"
+      data-product-id={id}
+      class="cantidad-input w-20 px-2 py-1 border rounded"
+    />
+    <button
+      data-product-id={id}
+      class="add-to-cart bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700"
+    >
+      Agregar
+    </button>
+  </div>
+</div>
+
+<script>
+  function setupProductCard() {
+    document.querySelectorAll('.add-to-cart').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const productId = (e.currentTarget as HTMLButtonElement).dataset.productId;
+        const input = document.querySelector(`input[data-product-id="${productId}"]`) as HTMLInputElement;
+        const cantidad = parseInt(input.value);
+        
+        const event = new CustomEvent('addToCart', {
+          detail: { id: parseInt(productId!), cantidad }
+        });
+        window.dispatchEvent(event);
+        
+        // Reset cantidad a 1
+        input.value = '1';
+      });
+    });
+  }
+
+  // Ejecutar cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', setupProductCard);
+</script>

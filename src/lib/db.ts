@@ -1,3 +1,4 @@
+// lib/db.ts
 import pg from 'pg';
 
 const pool = new pg.Pool({
@@ -11,22 +12,16 @@ const pool = new pg.Pool({
   }
 });
 
-export async function getStudents() {
+export async function getProducts() {
   try {
-    const { rows } = await pool.query('SELECT * FROM estudiantes ORDER BY nombre');
-    return rows.map((student) => ({
-      ...student,
-      horario: typeof student.horario === 'string' 
-        ? JSON.parse(student.horario) 
-        : student.horario
-    }));
+    const { rows } = await pool.query('SELECT * FROM productos ORDER BY nombre');
+    return rows;
   } catch (error) {
     console.error('Database error:', error);
-    throw error; // Es mejor propagar el error para manejarlo en la capa superior
+    throw error;
   }
 }
 
-// Función para cerrar la conexión cuando sea necesario
 export async function closePool() {
   await pool.end();
 }

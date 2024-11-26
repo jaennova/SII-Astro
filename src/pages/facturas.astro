@@ -1,0 +1,90 @@
+---
+// src/pages/factura.astro
+import Layout from '../layouts/Layout.astro';
+import { getProducts } from '../lib/db';
+
+interface CartItem {
+  [key: string]: number;
+}
+
+const cartParam = Astro.url.searchParams.get('cart');
+const cart: CartItem = cartParam ? JSON.parse(cartParam) : {};
+const products = await getProducts();
+
+let subtotal = 0;
+const items = Object.entries(cart).map(([id, cantidad]) => {
+  const product = products.find(p => p.id === parseInt(id));
+  if (!product) return null;
+  const total = product.precio * (cantidad as number);
+  subtotal += total;
+  return { ...product, cantidad, total };
+}).filter(item => item !== null);
+
+const iva = subtotal * 0.16;
+const total = subtotal + iva;
+---
+
+<Layout title="Factura">
+  <main class="min-h-screen bg-gray-100 py-12">
+    <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-8">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold">Factura de Compra</h1>
+        <p class="text-gray-600">Fecha: {new Date().toLocaleDateString()}</p>
+      </div>
+
+      <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4">Detalles de la Compra</h2>
+        <table class="w-full">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2">Producto</th>
+              <th class="text-center py-2">Cantidad</th>
+              <th class="text-right py-2">Precio</th>
+              <th class="text-right py-2">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {items.map((item) => item && (
+              <tr class="border-b">
+                <td class="py-2">{item.nombre}</td>
+                <td class="text-center py-2">{item.cantidad}</td>
+                <td class="text-right py-2">${item.precio.toFixed(2)}</td>
+                <td class="text-right py-2">${item.total.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="border-t pt-4">
+        <div class="flex justify-between mb-2">
+          <span>Subtotal:</span>
+          <span>${subtotal.toFixed(2)}</span>
+        </div>
+        <div class="flex justify-between mb-2">
+          <span>IVA (16%):</span>
+          <span>${iva.toFixed(2)}</span>
+        </div>
+        <div class="flex justify-between font-bold text-lg">
+          <span>Total:</span>
+          <span>${total.toFixed(2)}</span>
+        </div>
+      </div>
+
+      <div class="mt-8 text-center">
+        <button
+          onclick="window.print()"
+          class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
+        >
+          Imprimir Factura
+        </button>
+        <a
+          href="/"
+          class="ml-4 text-primary-600 hover:text-primary-700"
+        >
+          Volver a la Tienda
+        </a>
+      </div>
+    </div>
+  </main>
+</Layout>
