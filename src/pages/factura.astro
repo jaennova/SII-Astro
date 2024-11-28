@@ -48,7 +48,7 @@ const total = subtotal + iva;
               <tr class="border-b">
                 <td class="py-2">{item.nombre}</td>
                 <td class="text-center py-2">{item.cantidad}</td>
-                <td class="text-right py-2">${item.precio.toFixed(2)}</td>
+                <td class="text-right py-2">${Number(item.precio).toFixed(2)}</td>
                 <td class="text-right py-2">${item.total.toFixed(2)}</td>
               </tr>
             ))}

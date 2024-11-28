@@ -16,35 +16,45 @@ const products = await getProducts();
         </h1>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        <div id="cart-summary" class="lg:col-span-3 bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold mb-4">Resumen de Compra</h2>
-          <div id="cart-items"></div>
-          <div class="mt-4 pt-4 border-t">
-            <div class="flex justify-between">
-              <span>Subtotal:</span>
-              <span id="subtotal">$0.00</span>
-            </div>
-            <div class="flex justify-between">
-              <span>IVA (16%):</span>
-              <span id="iva">$0.00</span>
-            </div>
-            <div class="flex justify-between font-bold mt-2">
-              <span>Total:</span>
-              <span id="total">$0.00</span>
-            </div>
-            <button
-              id="checkout-button"
-              class="w-full mt-4 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
-            >
-              Proceder al Pago
-            </button>
+      <div class="lg:grid lg:grid-cols-4 lg:gap-8">
+        {/* Grid de productos - ocupa 3 columnas en desktop */}
+        <div class="lg:col-span-3">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {products.map((product) => (
+              <ProductCard {...product} />
+            ))}
           </div>
         </div>
 
-        {products.map((product) => (
-          <ProductCard {...product} />
-        ))}
+        {/* Resumen de compra - ocupa 1 columna en desktop */}
+        <div class="lg:col-span-1">
+          <div class="sticky top-6">
+            <div id="cart-summary" class="bg-white rounded-lg shadow-md p-6">
+              <h2 class="text-xl font-semibold mb-4">Resumen de Compra</h2>
+              <div id="cart-items"></div>
+              <div class="mt-4 pt-4 border-t">
+                <div class="flex justify-between">
+                  <span>Subtotal:</span>
+                  <span id="subtotal">$0.00</span>
+                </div>
+                <div class="flex justify-between">
+                  <span>IVA (16%):</span>
+                  <span id="iva">$0.00</span>
+                </div>
+                <div class="flex justify-between font-bold mt-2">
+                  <span>Total:</span>
+                  <span id="total">$0.00</span>
+                </div>
+                <button
+                  id="checkout-button"
+                  class="w-full mt-4 bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+                >
+                  Proceder al Pago
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
