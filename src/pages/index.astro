@@ -59,10 +59,9 @@ const products = await getProducts();
     </div>
   </main>
 </Layout>
-
 <script define:vars={{ products }}>
-  // Inicializar el carrito como un objeto vacío
-  let cart = {};
+  // Inicializar el carrito desde localStorage o como objeto vacío si no existe
+  let cart = JSON.parse(localStorage.getItem('cart') || '{}');
 
   function updateCartUI() {
     const cartItems = document.getElementById('cart-items');
@@ -94,11 +93,15 @@ const products = await getProducts();
     subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
     ivaElement.textContent = `$${iva.toFixed(2)}`;
     totalElement.textContent = `$${total.toFixed(2)}`;
+
+    // Guardar el carrito actualizado en localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
   }
 
-  // Escuchar el evento addToCart
+  // Cargar el carrito inicial
+  updateCartUI();
+
   window.addEventListener('addToCart', function(event) {
-    // Asegurarse de que event.detail existe y tiene las propiedades necesarias
     if (event && 'detail' in event) {
       const detail = event.detail;
       if (detail && 'id' in detail && 'cantidad' in detail) {
@@ -124,4 +127,11 @@ const products = await getProducts();
       window.location.href = `/factura?cart=${encodeURIComponent(JSON.stringify(cart))}`;
     });
   }
+
+  // Limpiar carrito después de una compra exitosa
+  window.addEventListener('purchaseComplete', function() {
+    cart = {};
+    localStorage.removeItem('cart');
+    updateCartUI();
+  });
 </script>

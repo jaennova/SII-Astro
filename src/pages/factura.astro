@@ -1,7 +1,7 @@
 ---
 // src/pages/factura.astro
 import Layout from '../layouts/Layout.astro';
-import { getProducts } from '../lib/db';
+import { getProducts, insertInvoice } from '../lib/db';
 
 interface CartItem {
   [key: string]: number;
@@ -73,10 +73,10 @@ const total = subtotal + iva;
 
       <div class="mt-8 text-center">
         <button
-          onclick="window.print()"
+          id="purchaseButton"
           class="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700"
         >
-          Imprimir Factura
+          Realizar Compra
         </button>
         <a
           href="/"
@@ -85,6 +85,60 @@ const total = subtotal + iva;
           Volver a la Tienda
         </a>
       </div>
-    </div>
+      <div id="messageContainer" class="mt-4 text-center hidden">
+        <p id="successMessage" class="text-green-600 font-semibold"></p>
+      </div>
   </main>
 </Layout>
+
+<script define:vars={{ subtotal, iva, total, items }}>
+  document.getElementById('purchaseButton')?.addEventListener('click', async () => {
+    try {
+      const response = await fetch('/api/facturas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subtotal,
+          iva,
+          total,
+          detalles: items
+        })
+      });
+
+      if (response.ok) {
+        // Limpiar el carrito en localStorage
+        localStorage.removeItem('cart');
+        
+        // Disparar evento de compra completada
+        window.dispatchEvent(new Event('purchaseComplete'));
+
+        // Mostrar mensaje de éxito
+        const messageContainer = document.getElementById('messageContainer');
+        const successMessage = document.getElementById('successMessage');
+        if (messageContainer && successMessage) {
+          messageContainer.classList.remove('hidden');
+          successMessage.textContent = '¡Compra realizada con éxito!';
+          
+          // Deshabilitar el botón de compra
+          const purchaseButton = document.getElementById('purchaseButton');
+          if (purchaseButton) {
+            purchaseButton.disabled = true;
+            purchaseButton.classList.add('opacity-50');
+          }
+
+          // Redireccionar después de 3 segundos
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 3000);
+        }
+      } else {
+        throw new Error('Error al procesar la compra');
+      }
+    } catch (error) {
+      alert('Error al procesar la compra. Por favor, intente nuevamente.');
+      console.error('Error:', error);
+    }
+  });
+</script>

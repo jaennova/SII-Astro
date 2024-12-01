@@ -23,6 +23,20 @@ export async function getProducts() {
   }
 }
 
+export async function insertInvoice(subtotal: number, iva: number, total: number, detalles: any) {
+  try {
+    const query = `
+      INSERT INTO facturas (subtotal, iva, total, detalles, fecha_creacion)
+      VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+      RETURNING id`;
+    const values = [subtotal, iva, total, JSON.stringify(detalles)];
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error inserting invoice:', error);
+    throw error;
+  }
+}
 // Función para obtener estudiantes
 export async function getStudents() {
   try {
