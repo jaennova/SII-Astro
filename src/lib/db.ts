@@ -37,6 +37,26 @@ export async function insertInvoice(subtotal: number, iva: number, total: number
     throw error;
   }
 }
+
+export async function insertProduct(product: {
+  nombre: string;
+  precio: number;
+  descripcion: string;
+  imagen_url: string;
+}) {
+  try {
+    const query = `
+      INSERT INTO productos (nombre, precio, descripcion, imagen_url)
+      VALUES ($1, $2, $3, $4)
+      RETURNING id`;
+    const values = [product.nombre, product.precio, product.descripcion, product.imagen_url];
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  } catch (error) {
+    console.error('Error inserting product:', error);
+    throw error;
+  }
+}
 // Función para obtener estudiantes
 export async function getStudents() {
   try {
