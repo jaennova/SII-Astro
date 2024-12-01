@@ -93,6 +93,14 @@ const total = subtotal + iva;
 
 <script define:vars={{ subtotal, iva, total, items }}>
   document.getElementById('purchaseButton')?.addEventListener('click', async () => {
+    const purchaseButton = document.getElementById('purchaseButton');
+    
+    // Si el botón dice "Imprimir Factura", ejecutar la impresión
+    if (purchaseButton?.textContent?.trim() === 'Imprimir Factura') {
+      window.print();
+      return;
+    }
+
     try {
       const response = await fetch('/api/facturas', {
         method: 'POST',
@@ -121,17 +129,17 @@ const total = subtotal + iva;
           messageContainer.classList.remove('hidden');
           successMessage.textContent = '¡Compra realizada con éxito!';
           
-          // Deshabilitar el botón de compra
-          const purchaseButton = document.getElementById('purchaseButton');
+          // Cambiar el texto del botón a "Imprimir Factura"
           if (purchaseButton) {
-            purchaseButton.disabled = true;
-            purchaseButton.classList.add('opacity-50');
+            purchaseButton.textContent = 'Imprimir Factura';
+            purchaseButton.classList.remove('bg-primary-600', 'hover:bg-primary-700');
+            purchaseButton.classList.add('bg-green-600', 'hover:bg-green-700');
           }
 
-          // Redireccionar después de 3 segundos
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 3000);
+          // Ya no necesitamos redireccionar después de 3 segundos
+          // setTimeout(() => {
+          //   window.location.href = '/';
+          // }, 3000);
         }
       } else {
         throw new Error('Error al procesar la compra');
@@ -142,3 +150,23 @@ const total = subtotal + iva;
     }
   });
 </script>
+
+<!-- Agregar estilos para la impresión -->
+<style>
+  @media print {
+    #purchaseButton, #messageContainer {
+      display: none !important;
+    }
+    
+    /* Asegurarse de que todo el contenido de la factura sea visible */
+    body {
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+    }
+    
+    /* Ocultar elementos que no queremos imprimir */
+    .no-print {
+      display: none !important;
+    }
+  }
+</style>
