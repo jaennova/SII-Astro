@@ -15,7 +15,18 @@ const products = await getProducts();
           Tienda Online
         </h1>
       </div>
-
+      <div id="cart-summary" class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-semibold">Resumen de Compra</h2>
+          <button
+            id="clear-cart"
+            class="text-red-500 hover:text-red-700 text-sm"
+            onclick="clearCart()"
+          >
+            Vaciar carrito
+          </button>
+        </div>
+      </div>
       <div class="lg:grid lg:grid-cols-4 lg:gap-8">
         {/* Grid de productos - ocupa 3 columnas en desktop */}
         <div class="lg:col-span-3">
@@ -59,8 +70,9 @@ const products = await getProducts();
     </div>
   </main>
 </Layout>
+
 <script define:vars={{ products }}>
-  // Inicializar el carrito desde localStorage o como objeto vacío si no existe
+  // Inicializar el carrito desde localStorage o como objeto vacío
   let cart = JSON.parse(localStorage.getItem('cart') || '{}');
 
   function updateCartUI() {
@@ -80,7 +92,17 @@ const products = await getProducts();
         subtotal += product.precio * Number(cantidad);
         cartItems.innerHTML += `
           <div class="flex justify-between items-center mb-2">
-            <span>${product.nombre} x ${cantidad}</span>
+            <div class="flex items-center">
+              <span>${product.nombre} x ${cantidad}</span>
+              <button 
+                class="ml-2 text-red-500 hover:text-red-700"
+                onclick="removeFromCart(${id})"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+              </button>
+            </div>
             <span>$${(product.precio * Number(cantidad)).toFixed(2)}</span>
           </div>
         `;
@@ -94,13 +116,19 @@ const products = await getProducts();
     ivaElement.textContent = `$${iva.toFixed(2)}`;
     totalElement.textContent = `$${total.toFixed(2)}`;
 
-    // Guardar el carrito actualizado en localStorage
+    // Guardar el carrito en localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
   }
 
-  // Cargar el carrito inicial
-  updateCartUI();
+  // Función para eliminar productos del carrito
+  window.removeFromCart = function(productId) {
+    if (cart[productId]) {
+      delete cart[productId];
+      updateCartUI();
+    }
+  }
 
+  // Escuchar el evento addToCart
   window.addEventListener('addToCart', function(event) {
     if (event && 'detail' in event) {
       const detail = event.detail;
@@ -127,11 +155,20 @@ const products = await getProducts();
       window.location.href = `/factura?cart=${encodeURIComponent(JSON.stringify(cart))}`;
     });
   }
-
-  // Limpiar carrito después de una compra exitosa
-  window.addEventListener('purchaseComplete', function() {
-    cart = {};
-    localStorage.removeItem('cart');
-    updateCartUI();
-  });
+  // Función para vaciar el carrito completo
+  window.clearCart = function() {
+    if (Object.keys(cart).length === 0) {
+      alert('El carrito ya está vacío');
+      return;
+    }
+    
+    if (confirm('¿Estás seguro de que deseas vaciar el carrito?')) {
+      cart = {};
+      localStorage.removeItem('cart');
+      updateCartUI();
+    }
+  }
+  // Cargar el carrito inicial
+  updateCartUI();
+  
 </script>
